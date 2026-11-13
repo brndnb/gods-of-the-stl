@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gods of The STL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:ital,wght@0,500;0,800;1,900&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#f5c542;--ink:#0b0b12;--hot:#ff3b3b;--cyan:#38e1ff;--panel:rgba(10,10,20,.82)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:Rubik,system-ui,sans-serif;color:#fff;user-select:none}
+#wrap{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform-origin:center center;background:#000}
+#cv{position:absolute;inset:0;width:1280px;height:720px;display:block}
+.scr{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column}
+.scr.on{display:flex}
+.title{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:4px;line-height:.9;text-shadow:0 0 18px rgba(255,200,60,.6),4px 4px 0 #000}
+.btn{font-family:Rubik;font-weight:900;font-style:italic;font-size:30px;letter-spacing:1px;color:#fff;background:linear-gradient(100deg,#1b1b2b 0%,#26263c 100%);border:3px solid #fff;padding:10px 38px;margin:8px;min-width:340px;cursor:pointer;transform:skewX(-12deg);box-shadow:6px 6px 0 #000;transition:transform .08s,background .08s}
+.btn span{display:inline-block;transform:skewX(12deg)}
+.btn:hover,.btn.sel{background:linear-gradient(100deg,#ff3b3b,#ff9b2b);transform:skewX(-12deg) scale(1.06);box-shadow:8px 8px 0 #000,0 0 26px rgba(255,120,40,.7)}
+.btn.lock{opacity:.45;cursor:not-allowed}
+.btn.small{font-size:20px;min-width:200px;padding:6px 20px}
+.panel{background:var(--panel);border:3px solid #fff;padding:26px 34px;box-shadow:10px 10px 0 #000}
+input[type=text]{font:800 32px Rubik;padding:10px 16px;width:420px;background:#111;color:#fff;border:3px solid var(--gold);outline:none;text-align:center}
+.hint{font-size:15px;opacity:.75;margin-top:8px}
+.row{display:flex;align-items:center;gap:14px;margin:10px 0;font-size:20px;font-weight:800}
+.row label{width:230px;text-align:right}
+input[type=range]{width:300px;accent-color:#ff5b2b}
+.tog{width:90px;padding:6px;font:900 18px Rubik;cursor:pointer;border:3px solid #fff;background:#222;color:#fff}
+.tog.on{background:#2bd96b;color:#000}
+#grid{display:grid;grid-template-columns:repeat(6,150px);gap:8px;margin-top:6px}
+.cell{width:150px;height:150px;position:relative;border:3px solid #333;background:#15151f;cursor:pointer;overflow:hidden;transform:skewX(-6deg)}
+.cell canvas{position:absolute;inset:0;width:100%;height:100%;transform:skewX(6deg) scale(1.08)}
+.cell .nm{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);font:900 italic 17px Rubik;text-align:center;padding:2px;transform:skewX(6deg)}
+.cell .done{position:absolute;top:4px;right:6px;font-size:13px;color:#2bd96b;transform:skewX(6deg)}
+.cell:hover,.cell.sel{border-color:var(--gold);box-shadow:0 0 18px var(--gold)}
+#selInfo{display:flex;gap:30px;width:1180px;margin-top:10px;align-items:stretch}
+.side{flex:1;background:var(--panel);border:3px solid #fff;padding:10px 16px;min-height:150px}
+.side h2{font-family:'Bebas Neue';font-size:46px;letter-spacing:2px;line-height:1}
+.side .sub{color:var(--gold);font-weight:800;font-size:15px}
+.side p{font-size:13.5px;opacity:.9;margin-top:4px;line-height:1.3}
+#stageGrid{display:grid;grid-template-columns:repeat(4,250px);gap:12px}
+.stg{height:120px;border:3px solid #444;cursor:pointer;position:relative;overflow:hidden}
+.stg canvas{width:100%;height:100%}
+.stg div{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);font:900 italic 16px Rubik;padding:3px 8px}
+.stg:hover{border-color:var(--gold);box-shadow:0 0 18px var(--gold)}
+#movelist{font-size:13px;line-height:1.45;max-height:430px;overflow:auto;width:900px;column-count:2;column-gap:30px}
+#movelist b{color:var(--gold)}
+#movelist .fd{color:#9ad;font-size:11.5px}
+#skip{position:absolute;right:24px;bottom:18px;font-size:16px;opacity:.7}
+#gate{cursor:pointer}
+kbd{display:inline-block;background:#222;border:2px solid #888;border-bottom-width:4px;padding:0 7px;border-radius:4px;font:800 14px Rubik;margin:0 2px}
+.ctrl{font-size:14px;line-height:1.8;margin-top:12px;text-align:center;opacity:.9}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv" width="1280" height="720"></canvas>
+
+  <div id="gate" class="scr on">
+    <div class="title" style="font-size:120px">GODS OF THE STL</div>
+    <div class="btn sel" style="margin-top:30px"><span>CLICK TO BEGIN</span></div>
+    <div class="hint">Sound on. Best in Chrome / Edge / Firefox.</div>
+  </div>
+
+  <div id="cutscene" class="scr"><div id="skip">Click or press Enter to skip ▸▸</div></div>
+
+  <div id="nameScr" class="scr">
+    <div class="panel" style="text-align:center">
+      <div class="title" style="font-size:64px">WHO DARES ENTER THE STL?</div>
+      <div style="margin:18px 0"><input id="nameIn" type="text" maxlength="16" placeholder="USERNAME"></div>
+      <div id="nameMsg" class="hint">Choose wisely. You can only change it after you've played as all 12 gods.</div>
+      <div class="btn sel" id="nameOk" style="margin-top:18px"><span>CONFIRM</span></div>
+    </div>
+  </div>
+
+  <div id="menu" class="scr">
+    <div class="title" style="font-size:110px">GODS OF THE STL</div>
+    <div id="welcome" style="font:800 italic 22px Rubik;margin:-4px 0 18px;color:var(--gold)"></div>
+    <div class="btn" data-act="1v1"><span>1 V 1</span></div>
+    <div class="btn" data-act="settings"><span>SETTINGS</span></div>
+    <div class="btn" data-act="rename"><span id="renameLbl">CHANGE USERNAME</span></div>
+    <div class="btn" data-act="exit"><span>EXIT</span></div>
+    <div class="ctrl">
+      Move <kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> Jump <kbd>W</kbd> Crouch <kbd>S</kbd> ·
+      Front Punch <kbd>J</kbd> Back Punch <kbd>I</kbd> Front Kick <kbd>K</kbd> Back Kick <kbd>L</kbd> ·
+      Block <kbd>O</kbd>/<kbd>Space</kbd> Throw <kbd>U</kbd> Ultimate <kbd>R</kbd> · Pause <kbd>Esc</kbd>
+    </div>
+  </div>
+
+  <div id="settings" class="scr">
+    <div class="panel">
+      <div class="title" style="font-size:60px;text-align:center;margin-bottom:10px">SETTINGS</div>
+      <div class="row"><label>Lobby music</label><input type="range" min="0" max="100" id="volLobby"><span id="vLobby"></span></div>
+      <div class="row"><label>In-game music</label><input type="range" min="0" max="100" id="volGame"><span id="vGame"></span></div>
+      <div class="row"><label>Sound effects</label><input type="range" min="0" max="100" id="volSfx"><span id="vSfx"></span></div>
+      <div class="row"><label>Announcer voice</label><button class="tog" id="togVoice"></button></div>
+      <div class="row"><label>Blood mode (no gore)</label><button class="tog" id="togBlood"></button></div>
+      <div class="row"><label>Hitboxes + frame data</label><button class="tog" id="togBoxes"></button></div>
+      <div class="row"><label>Bot difficulty</label><input type="range" min="1" max="5" id="diff"><span id="vDiff"></span></div>
+      <div style="text-align:center;margin-top:14px"><div class="btn small" id="setBack"><span>BACK</span></div></div>
+    </div>
+  </div>
+
+  <div id="select" class="scr" style="justify-content:flex-start;padding-top:14px">
+    <div class="title" style="font-size:56px">CHOOSE YOUR GOD</div>
+    <div id="grid"></div>
+    <div id="selInfo">
+      <div class="side" id="p1Info"></div>
+      <div class="side" id="p2Info" style="text-align:right"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <div class="btn small" id="selBack"><span>BACK</span></div>
+      <div class="btn small" id="selMoves"><span>MOVE LIST</span></div>
+    </div>
+  </div>
+
+  <div id="confirm" class="scr">
+    <div class="panel" style="text-align:center">
+      <div class="title" style="font-size:60px" id="confirmTxt">CONTINUE?</div>
+      <div style="display:flex;justify-content:center;margin-top:14px">
+        <div class="btn small sel" id="cYes"><span>YES</span></div>
+        <div class="btn small" id="cNo"><span>NO</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stage" class="scr">
+    <div class="title" style="font-size:56px;margin-bottom:12px">CHOOSE THE BATTLEGROUND</div>
+    <div id="stageGrid"></div>
+  </div>
+
+  <div id="moves" class="scr">
+    <div class="panel">
+      <div class="title" style="font-size:44px" id="movesTitle">MOVE LIST</div>
+      <div id="movelist"></div>
+      <div style="text-align:center;margin-top:10px"><div class="btn small" id="movesBack"><span>BACK</span></div></div>
+    </div>
+  </div>
+
+  <div id="pause" class="scr">
+    <div class="title" style="font-size:90px">PAUSED</div>
+    <div class="btn" data-p="resume"><span>RESUME</span></div>
+    <div class="btn" data-p="moves"><span>MOVE LIST</span></div>
+    <div class="btn" data-p="settings"><span>SETTINGS</span></div>
+    <div class="btn" data-p="quit"><span>MAIN MENU</span></div>
+  </div>
+
+  <div id="results" class="scr" style="justify-content:flex-end;padding-bottom:60px">
+    <div class="btn" data-r="again"><span>1V1 AGAIN</span></div>
+    <div class="btn" data-r="chars"><span>CHANGE CHARACTERS</span></div>
+    <div class="btn" data-r="menu"><span>MAIN MENU</span></div>
+  </div>
+
+  <div id="bye" class="scr" style="background:#000">
+    <div class="title" style="font-size:90px">THE STL AWAITS YOUR RETURN</div>
+    <div class="hint">You can close this tab now.</div>
+    <div class="btn small" id="byeBack" style="margin-top:20px"><span>BACK</span></div>
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/data.js"></script>
+<script src="js/render.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/stages.js"></script>
+<script src="js/fighter.js"></script>
+<script src="js/specials.js"></script>
+<script src="js/specials2.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/game.js"></script>
+<script src="js/gdraw.js"></script>
+<script src="js/cutscene.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

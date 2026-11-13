@@ -1,0 +1,75 @@
+// ===== Roster + shared frame data =====
+(function () {
+  // Shared normals. Hitboxes are relative to the fighter's feet (x forward, y up = negative).
+  // s=startup a=active r=recovery hs=hitstun bs=blockstun kb=base knockback kbg=knockback growth ang=launch angle
+  G.NORMALS = {
+    FP:  { name: 'Front Punch',  s: 5,  a: 3, r: 8,  dmg: 3,  hs: 15, bs: 10, push: 4,  kb: 3,  kbg: 2,  ang: 20, lvl: 'high', hb: [18, -118, 54, 22], chain: ['BP', 'FK', 'FP'], pose: 'jab' },
+    BP:  { name: 'Back Punch',   s: 8,  a: 3, r: 13, dmg: 5,  hs: 18, bs: 12, push: 6,  kb: 5,  kbg: 3,  ang: 25, lvl: 'high', hb: [20, -116, 64, 24], chain: ['FK', 'BK'], pose: 'straight' },
+    FK:  { name: 'Front Kick',   s: 9,  a: 4, r: 15, dmg: 6,  hs: 18, bs: 12, push: 7,  kb: 6,  kbg: 4,  ang: 25, lvl: 'mid',  hb: [18, -84, 74, 26], chain: ['BK'], pose: 'fkick' },
+    BK:  { name: 'Roundhouse',   s: 13, a: 4, r: 19, dmg: 9,  hs: 24, bs: 14, push: 10, kb: 11, kbg: 9,  ang: 38, lvl: 'mid',  hb: [14, -138, 82, 40], chain: [], heavy: true, pose: 'hkick' },
+    dFP: { name: 'Crouch Jab',   s: 4,  a: 2, r: 7,  dmg: 2,  hs: 13, bs: 9,  push: 4,  kb: 2,  kbg: 1,  ang: 15, lvl: 'mid',  hb: [18, -76, 48, 18], chain: ['dFP', 'dFK', 'dBP'], pose: 'cjab' },
+    dBP: { name: 'Uppercut',     s: 9,  a: 4, r: 22, dmg: 10, hs: 30, bs: 16, push: 6,  kb: 15, kbg: 10, ang: 82, lvl: 'mid',  hb: [4, -170, 54, 120], chain: [], heavy: true, launch: true, pose: 'uppercut' },
+    dFK: { name: 'Low Poke',     s: 7,  a: 3, r: 12, dmg: 3,  hs: 15, bs: 10, push: 5,  kb: 3,  kbg: 1,  ang: 10, lvl: 'low',  hb: [18, -26, 70, 22], chain: ['dBK'], pose: 'clow' },
+    dBK: { name: 'Sweep',        s: 11, a: 4, r: 22, dmg: 7,  hs: 30, bs: 14, push: 8,  kb: 6,  kbg: 3,  ang: 70, lvl: 'low',  hb: [14, -24, 90, 24], chain: [], knockdown: true, pose: 'sweep' },
+    jFP: { name: 'Air Punch',    s: 6,  a: 6, r: 10, dmg: 5,  hs: 17, bs: 11, push: 5,  kb: 5,  kbg: 3,  ang: 30, lvl: 'ovh',  hb: [12, -106, 58, 42], chain: ['jFK', 'jBK'], pose: 'jpunch' },
+    jBP: { name: 'Air Hammer',   s: 9,  a: 5, r: 12, dmg: 7,  hs: 20, bs: 12, push: 6,  kb: 9,  kbg: 6,  ang: -60, lvl: 'ovh', hb: [6, -92, 62, 50], chain: [], heavy: true, spike: true, pose: 'jhammer' },
+    jFK: { name: 'Air Kick',     s: 7,  a: 8, r: 12, dmg: 6,  hs: 18, bs: 12, push: 6,  kb: 6,  kbg: 4,  ang: 30, lvl: 'ovh',  hb: [8, -74, 68, 42], chain: ['jBK'], pose: 'jkick' },
+    jBK: { name: 'Air Dropkick', s: 10, a: 6, r: 14, dmg: 8,  hs: 22, bs: 13, push: 9,  kb: 10, kbg: 8,  ang: 35, lvl: 'ovh',  hb: [4, -80, 82, 50], chain: [], heavy: true, pose: 'jdrop' },
+    TH:  { name: 'Throw',        s: 6,  a: 3, r: 26, dmg: 10, hs: 40, bs: 0,  push: 0,  kb: 13, kbg: 6,  ang: 40, lvl: 'throw', hb: [10, -120, 52, 100], chain: [], throw: true, pose: 'grab' },
+  };
+  G.INPUTS = { s1: '↓ → + FP', s2: '← → + BP', s3: '↓ ← + FK', s4: '↓ ↓ + BK', ult: 'R (meter full)', fat: '↓ → ↓ + FP  or  F' };
+  G.KEYLBL = { FP: 'J', BP: 'I', FK: 'K', BK: 'L' };
+
+  // Each god: visual palette + text. Special logic lives in specials.js (same ids).
+  G.ROSTER = [
+    { id: 'james', name: 'JAMES', code: 'TGOTMR', title: 'The God of Thoughts Made Real', col: '#f4f6ff', acc: '#9fb4ff', glow: '#dfe8ff', skin: '#4a2f22', block: 'thought',
+      bio: 'Clouds of white thought swirl around him. Whatever he imagines becomes a construct.',
+      sp: ['Thought Fist — a giant cloud fist flies forward', 'Mind Hammer — dashes in with an overhead construct hammer', 'Brain Cage — traps the foe in a cage of thoughts', 'Idea Cannon (POWERFUL) — charges a massive thought blast'],
+      ult: 'MIND BREAKER — drags the foe into his head, where the craziest thoughts come alive and attack at once' },
+    { id: 'kyle', name: 'KYLE', code: 'TGOG', title: 'The God of Games', col: '#20232f', acc: '#e8e8e8', glow: '#ff4d4d', skin: '#f0c8a8', block: 'cards',
+      bio: 'A man in a sharp suit with a die for a head. Controls any game that exists, but can never invent his own.',
+      sp: ['Dice Roll — throws a die, damage = what it lands on (1–6)', 'Knight\'s Move — L-shaped chess jump that lands on the foe', 'Falling Blocks — puzzle blocks rain on the foe', 'Jackpot (POWERFUL) — slot reels spin; 3 of a kind = huge hit'],
+      ult: 'GAME NIGHT OVERLOAD — every board game at once: +4 cards, poker chips, four-in-a-row discs and a final checkmate' },
+    { id: 'laura', name: 'LAURA', code: 'TGOL', title: 'The God of Life', col: '#3f2a1e', acc: '#3fbf4f', glow: '#9bff7a', skin: '#5a3a28', block: 'vines',
+      bio: 'Vines and leaves grow across her body. Every living thing answers to her.',
+      sp: ['Vine Whip — long-range lash', 'Thorn Burst — thorns erupt from the ground under the foe', 'Possession Spore — if it hits, she possesses the foe and makes them hit THEMSELVES for 2 seconds', 'Bloom Crush (POWERFUL) — a giant flower snaps shut on the foe'],
+      ult: 'OVERGROWTH — an ancient world-tree erupts, roots bind and crush the foe' },
+    { id: 'lorenzo', name: 'LORENZO', code: 'TGORC', title: 'The God of Rogue Creatures', col: '#7a6544', acc: '#ff8a1c', glow: '#ffb35a', skin: '#e2b98c', block: 'cape',
+      bio: 'A beast hunter wearing a whole tiger as his cape.',
+      sp: ['Wild Summon — summons a RANDOM creature (lion, eagle, wolf, bear, rhino, cobra) that YOU control. Lorenzo is frozen while it fights; hit him and it\'s a guaranteed crit that cancels the summon', 'Tiger Pounce — leaping claw strike', 'Cape Lash — the tiger cape bites', 'Alpha Roar (POWERFUL) — roar that launches'],
+      ult: 'STAMPEDE — every rogue creature in existence charges across the arena' },
+    { id: 'zephyra', name: 'ZEPHYRA', code: 'TGOCC', title: 'The God of Cosmic Characters', col: '#2a1b5e', acc: '#c58bff', glow: '#8fd8ff', skin: '#2a1b5e', block: 'nebula',
+      bio: 'A body made of galaxies, long white hair. Every attack is borrowed from a cosmic legend.',
+      sp: ['Gauntlet Laser — a six-stone gauntlet fires a beam', 'Cosmic Board — throws a silver surfboard like a boomerang', 'Phoenix Flare — a cosmic firebird dives at the foe', 'Black Hole (POWERFUL) — a singularity pulls the foe in'],
+      ult: 'THE SNAP — she snaps her fingers; reality dusts away around the foe' },
+    { id: 'jacob', name: 'JACOB', code: 'TGOLQ', title: 'The God of Liquids', col: '#1f8fff', acc: '#7fe0ff', glow: '#bff4ff', skin: '#e0b48a', block: 'water',
+      bio: 'Water swirls around his whole body. Any liquid obeys him.',
+      sp: ['Water Jet — high-pressure stream', 'Bubble Trap — traps the foe in a floating bubble', 'Geyser Uppercut — rides a geyser upward', 'Tsunami Fist (POWERFUL) — a wave-fist that carries the foe to the wall'],
+      ult: 'NESTEA FLOOD — summons a gigantic iced tea can that bursts and floods the entire arena (it drains after)' },
+    { id: 'mathew', name: 'MATHEW', code: 'TGOS', title: 'The God of Servants', col: '#3b2416', acc: '#f2c230', glow: '#ffe28a', skin: '#3b2416', block: 'sand',
+      bio: 'A desert pharaoh who commands an army of sand-born shabti servants. Can switch to fighting with his own whip.',
+      sp: ['Command: Shabti — summon sand servants who march and fight (Whip stance: Whip Crack)', 'Command: Spears — servants hurl spears (Whip stance: Whip Grab pulls the foe in)', 'Stance Switch — swap between Command and Whip fighting styles', 'Sand Tomb (POWERFUL) — the servants bury the foe in a sandstorm'],
+      ult: 'ARMY OF THE DUNES — a sandstorm rolls in and the entire shabti army charges' },
+    { id: 'sean', name: 'SEAN', code: 'TGOI', title: 'The God of Immortality', col: '#8d9bb0', acc: '#5d6b8c', glow: '#cfe0ff', skin: '#b9c4d6', block: 'veil',
+      bio: 'Immortality made flesh — and the sadness of outliving everything. PASSIVE: Undying — survives one lethal blow per match.',
+      sp: ['Tear Lance — a spear of frozen tears', 'Grief Chains — chains that pull the foe in and slow them', 'Eternal Embrace — a grab that steals life', 'Last Lament (POWERFUL) — a wail that echoes through time'],
+      ult: 'ENDLESS REQUIEM — time stops, the world turns grey, a rain of sorrow drains the foe while Sean heals' },
+    { id: 'kryztian', name: 'KRYZTIAN', code: 'TGOR', title: 'The God of Religion', col: '#d8c39a', acc: '#ffd34d', glow: '#fff1a8', skin: '#e2b98c', block: 'halo',
+      bio: 'Wears a beige bathrobe and an even bigger ego. Borrows the powers of every faith and pantheon.',
+      sp: ['Zeus Bolt — lightning from Olympus', 'Lotus Palm — an enlightened palm strike of pure calm', 'Pillar of Fire — a column of holy fire from the ground', 'Thunder Hammer (POWERFUL) — throws a Norse thunder hammer that returns'],
+      ult: 'PANTHEON — the beams of every god (Zeus\' lightning, Thor\'s thunder, holy light, the lotus, Ra\'s sun) fire at once' },
+    { id: 'hunter', name: 'HUNTER', code: 'TGOD', title: 'The God of Darkness', col: '#0d0d14', acc: '#7a2cff', glow: '#ff2a3a', skin: '#0d0d14', block: 'shadow',
+      bio: 'The embodiment of shadow. Wields the power of every villain in fiction.',
+      sp: ['Void Orb — an orb of pure darkness', 'Dark Choke — lifts the foe with a villain\'s grip', 'Shadow Step — teleports behind the foe', 'Night Tendrils (POWERFUL) — tendrils erupt from the floor'],
+      ult: 'ALL EVIL — darkness swallows the arena and every villain\'s hand strikes' },
+    { id: 'aisha', name: 'AISHA', code: 'TGOC', title: 'The God of Control', col: '#b8c2cc', acc: '#38e1ff', glow: '#7ff3ff', skin: '#c99b74', block: 'hex',
+      bio: 'Half metal, half human, half god. Can control almost anything — but never forever.',
+      sp: ['Override Cursor — a cursor grabs the foe and drags them (Animation-vs style)', 'Gravity Pull — yanks the foe toward her', 'Puppet Strings — controls the foe\'s legs for a moment', 'System Slam (POWERFUL) — grabs a piece of the UI and slams it down'],
+      ult: 'TOTAL CONTROL — she takes over the foe AND the game UI, beating them with their own health bar' },
+    { id: 'joldyne', name: 'JOLDYNE', code: 'TGOA', title: 'The God of Autism', col: '#5a3f2e', acc: '#ffb347', glow: '#ffe0a0', skin: '#8a6248', block: 'sound',
+      bio: 'Autistic herself and proud of it. Loves owls, sees every pattern, and hyperfocuses like nobody else.',
+      sp: ['Owl Swoop — her owl dives at the foe', 'Pattern Lock — reads the foe\'s pattern; counters the next hit', 'Hyperfocus — the world slows down for 3 seconds except her', 'Night Hoot (POWERFUL) — a sonic hoot that stuns'],
+      ult: 'PARLIAMENT OF OWLS — night falls and a thousand owls dive in perfect pattern' },
+  ];
+  G.byId = id => G.ROSTER.find(c => c.id === id);
+})();
