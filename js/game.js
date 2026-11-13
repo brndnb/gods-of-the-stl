@@ -28,6 +28,7 @@
     if (b(9) && !padPrev.s && G.game) G.game.togglePause(); padPrev.s = b(9);
   }
 
+  G.pushPress = b => pendingPress.push(b);
   const overlap = (a, b) => a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1];
 
   class Game {
@@ -96,7 +97,7 @@
       if (this.banner) this.banner.t++;
       const [a, b] = this.fighters;
       // inputs
-      const held = Object.assign({}, kb); pollPad(held); a.ctrl.held = held;
+      const held = Object.assign({}, kb); pollPad(held); const th = G.touchHeld; if (th) for (const k in th) if (th[k]) held[k] = 1; a.ctrl.held = held;
       while (pendingPress.length) a.ctrl.press(pendingPress.shift());
       if (this.phase === 'fight' || this.phase === 'finish') { this.bot.update(this); if (this.p1bot) this.p1bot.update(this); }
       if (this.slowmo > 0) { this.slowmo--; if (this.slowmo % 3) { G.FX.update(); return; } }
